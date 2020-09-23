@@ -2,7 +2,7 @@
 HOSTS=/etc/hosts
 HOST_ETHERS=/etc/hosts-ethers
 ARP_DB=/var/tmp/arpd.db
-IFACE=`ifconfig -s | cut -f 1 -d ' ' | grep "\(enp\|eth\|wlan\|wlp\)"`
+IFACE=`ip link | grep UP | cut -d ':' -f 2 | grep  "\(enp\|eth\|wlan\|wlp\)"`
 SUDO=`which sudo`
 TIME=10
 $SUDO rm /tmp/arp.txt /tmp/ethers /tmp/hosts
@@ -15,9 +15,10 @@ if [ ! -f ${HOST_ETHERS} ] ; then
 
 	exit 1
 else
-  cat /etc/hosts-ethers  | cut -d ' ' -f 2 > /tmp/ethers
+  cat /etc/hosts-ethers  | cut -f 1,2 > /tmp/ethers
   $SUDO chmod o+r /tmp/ethers
-  wakeonlan -f /tmp/ethers
+  cat /etc/hosts-ethers  | cut -f 2 > /tmp/ethers-wol
+  $SUDO wakeonlan -f /tmp/ethers-wol
 fi
 
 
