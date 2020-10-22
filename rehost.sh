@@ -15,9 +15,9 @@ if [ ! -f ${HOST_ETHERS} ] ; then
 
 	exit 1
 else
-  cat /etc/hosts-ethers  | cut -f 1,2 > /tmp/ethers
+  $SUDO cat /etc/hosts-ethers  | $SUDO cut -f 1,2 > /tmp/ethers
   $SUDO chmod o+r /tmp/ethers
-  cat /etc/hosts-ethers  | cut -f 2 > /tmp/ethers-wol
+  $SUDO cat /etc/hosts-ethers  | $SUDO cut -f 2 > /tmp/ethers-wol
   $SUDO wakeonlan -f /tmp/ethers-wol
 fi
 
@@ -36,7 +36,7 @@ echo "Waiting for arps"
 sleep $TIME
 $SUDO kill $ARP_PID
 
-arpd -l -b $ARP_DB | grep -v '#'  | grep -v FAILED | sort -k 3 > /tmp/arp.txt
+$SUDO arpd -l -b $ARP_DB | grep -v '#'  | grep -v FAILED | sort -k 3 > /tmp/arp.txt
 $SUDO chmod o+r /tmp/arp.txt
 
 if [ ! -s /tmp/arp.txt ] ; then 
@@ -63,7 +63,7 @@ while IFS= read -r line; do
     echo "-${IP}-${NAME}-"
     grep $NAME $HOSTS
     if [ $? == 0 ] ; then
-	    sed -i "/$NAME/ s/^.*\([[:space:]]\)/$IP\1/" $HOSTS
+	    $SUDO sed -i "/$NAME/ s/^.*\([[:space:]]\)/$IP\1/" $HOSTS
     else 
 	    echo "$IP	$NAME" >> $HOSTS
     fi
