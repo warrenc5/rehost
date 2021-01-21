@@ -2,12 +2,12 @@
 HOSTS=/etc/hosts
 HOST_ETHERS=/etc/hosts-ethers
 ARP_DB=/var/tmp/arpd.db
-IFACE=`ip link | grep UP | cut -d ':' -f 2 | grep  "\(enp\|eth\|wlan\|wlp\)"`
+IFACES=`ip link | grep UP | cut -d ':' -f 2 | grep  "\(enp\|eth\|wlan\|wlp\)"`
 SUDO=`which sudo`
 TIME=10
 $SUDO rm /tmp/arp.txt /tmp/ethers /tmp/hosts
 $SUDO pkill arpd
-echo $IFACE
+echo $IFACES
 
 if [ ! -f ${HOST_ETHERS} ] ; then
 	echo "create $HOST_ETHERS"
@@ -22,19 +22,23 @@ else
 fi
 
 
+for IFACE in $IFACES ; do
 $SUDO arpd -b $ARP_DB -a 3 -k $IFACE
+
 $SUDO chmod o+r $ARP_DB
+
 
 ARP_PID=$(pgrep arpd)
 
 if [ $? -ne 0 ] ; then 
-exit 1
+continue 
 fi
 
 echo "Waiting for arps"
 
 sleep $TIME
 $SUDO kill $ARP_PID
+done
 
 $SUDO arpd -l -b $ARP_DB | grep -v '#'  | grep -v FAILED | sort -k 3 > /tmp/arp.txt
 $SUDO chmod o+r /tmp/arp.txt
