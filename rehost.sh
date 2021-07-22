@@ -2,10 +2,10 @@
 HOSTS=/etc/hosts
 HOST_ETHERS=/etc/hosts-ethers
 ARP_DB=/var/tmp/arpd.db
-IFACES=`ip link | grep UP | cut -d ':' -f 2 | grep  "\(enp\|eth\|wlan\|wlp\)"`
+IFACES=`ip link | grep UP | cut -d ':' -f 2 | grep  "\(enp\|eth\|wlan\|wlp\)" | grep -v "veth"`
 SUDO=`which sudo`
 TIME=10
-$SUDO rm /tmp/arp.txt /tmp/ethers /tmp/hosts
+$SUDO rm /tmp/arp.txt /tmp/ethers /tmp/hosts $ARP_DB
 $SUDO pkill arpd
 echo $IFACES
 
@@ -36,7 +36,8 @@ fi
 
 echo "Waiting for arps"
 
-sleep $TIME
+sudo nmap -n -v -sn 10.0.0.0/24 
+#sleep $TIME
 $SUDO kill $ARP_PID
 done
 
@@ -65,11 +66,11 @@ while IFS= read -r line; do
     IP="${BASH_REMATCH[1]}"
     NAME="${BASH_REMATCH[2]}"
     echo "-${IP}-${NAME}-"
-    grep $NAME $HOSTS
+    grep "\<$NAME\>" $HOSTS
     if [ $? == 0 ] ; then
-	    $SUDO sed -i "/$NAME/ s/^.*\([[:space:]]\)/$IP\1/" $HOSTS
+	    $SUDO sed -i "/\<$NAME\>/ s/^.*\([[:space:]]\)/$IP\1/" $HOSTS
     else 
-	    echo "$IP	$NAME" >> $HOSTS
+	    echo "$IP	$NAME" | sudo tee -a $HOSTS
     fi
 
 done < /tmp/hosts
