@@ -36,7 +36,7 @@ fi
 
 echo "Waiting for arps"
 
-sudo nmap -n -v -sn 10.0.0.0/24 
+sudo nmap -n -v -sn 10.0.0.0/24 2>&1 | grep -v down
 #sleep $TIME
 $SUDO kill $ARP_PID
 done
