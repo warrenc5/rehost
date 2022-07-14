@@ -1,6 +1,6 @@
 #!/bin/bash -x
 HOSTS=/etc/hosts
-HOST_ETHERS=/etc/hosts-ethers
+ETHERS=/etc/ethers
 ARP_DB=/var/tmp/arpd.db
 IFACES=`ip link | grep UP | cut -d ':' -f 2 | grep  "\(enp\|eth\|wlan\|wlp\)" | grep -v "veth"`
 SUDO=`which sudo`
@@ -9,15 +9,15 @@ $SUDO rm /tmp/arp.txt /tmp/ethers /tmp/hosts $ARP_DB
 $SUDO pkill arpd
 echo $IFACES
 
-if [ ! -f ${HOST_ETHERS} ] ; then
-	echo "create $HOST_ETHERS"
-	echo "[hostname] [mac]"
+if [ ! -f ${ETHERS} ] ; then
+	echo "create $ETHERS"
+	echo "[mac] [hostname]"
 
 	exit 1
 else
-  $SUDO cat /etc/hosts-ethers  | $SUDO cut -f 1,2 > /tmp/ethers
+  $SUDO cat $ETHERS  | $SUDO cut -f 1,2 > /tmp/ethers
   $SUDO chmod o+r /tmp/ethers
-  $SUDO cat /etc/hosts-ethers  | $SUDO cut -f 2 > /tmp/ethers-wol
+  $SUDO cat $ETHERS  | $SUDO cut -f 1 > /tmp/ethers-wol
   $SUDO wakeonlan -f /tmp/ethers-wol
 fi
 
@@ -54,8 +54,9 @@ fi
 
 #ifconfig -s | cut -f 1 -d ' ' | grep -v Iface
 
-sort -k 2 $HOST_ETHERS > /tmp/hosts-ethers
-join -1 3 -2 2 /tmp/arp.txt /tmp/hosts-ethers | cut -d ' ' -f 3-4  | sort -k 1 > /tmp/hosts
+
+sort -k 1 $ETHERS | grep -v -E '[0-9]{1,3}?\.[0-9]{1,3}?\.' > /tmp/ethers
+join -1 3 -2 1 /tmp/arp.txt /tmp/ethers | cut -d ' ' -f 3-4  | sort -k 1 > /tmp/hosts
 
 ip='(.*)'
 name='(.*)'
